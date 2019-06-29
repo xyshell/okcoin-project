@@ -18,11 +18,21 @@ class CryptoCompareAPI():
         data = resp['Data']
         return data
 
-    def getCandle(self, freq='d', param={'fsym':'BTC', 'tsym':'USD', 'limit':10}):
+    def getCandle(self, freq='d', param={'fsym':'BTC', 'tsym':'USD', 'limit':168}):
         if freq == 'd':
             suburl = "/histoday?fsym={}&tsym={}&limit={}".format(
                 param['fsym'], param['tsym'], param['limit']
             )
+        elif freq == 'h':
+            suburl = "/histohour?fsym={}&tsym={}&limit={}".format(
+                param['fsym'], param['tsym'], param['limit']
+            )
+        elif freq == 'm':
+            suburl = "/histominute?fsym={}&tsym={}&limit={}".format(
+                param['fsym'], param['tsym'], param['limit']
+            )
+        else:
+            raise ValueError('frequency', freq, 'not supported')
         data = self.__safeRequest(self.url + suburl)
         df = pd.DataFrame(data)
         return df
@@ -45,7 +55,8 @@ class CryptoCompareAPI():
 
 if __name__ == '__main__':
     api = CryptoCompareAPI()
-    df = api.getTopCap()
+    param = {'fsym':'USDT', 'tsym':'USD', 'limit':168}
+    df = api.getCandle('h', param)
     print(df)
 
     
