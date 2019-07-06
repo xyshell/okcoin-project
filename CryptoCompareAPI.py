@@ -18,18 +18,18 @@ class CryptoCompareAPI():
         data = resp['Data']
         return data
 
-    def getCandle(self, freq='d', param={'fsym':'BTC', 'tsym':'USD', 'limit':168}):
+    def getCandle(self, freq='d', param={'fsym':'BTC', 'tsym':'USD', 'limit':168, 'toTs':10000000000}):
         if freq == 'd':
-            suburl = "/histoday?fsym={}&tsym={}&limit={}".format(
-                param['fsym'], param['tsym'], param['limit']
+            suburl = "/histoday?fsym={}&tsym={}&limit={}&toTs={}".format(
+                param['fsym'], param['tsym'], param['limit'], param['toTs']
             )
         elif freq == 'h':
-            suburl = "/histohour?fsym={}&tsym={}&limit={}".format(
-                param['fsym'], param['tsym'], param['limit']
+            suburl = "/histohour?fsym={}&tsym={}&limit={}&toTs={}".format(
+                param['fsym'], param['tsym'], param['limit'], param['toTs']
             )
         elif freq == 'm':
-            suburl = "/histominute?fsym={}&tsym={}&limit={}".format(
-                param['fsym'], param['tsym'], param['limit']
+            suburl = "/histominute?fsym={}&tsym={}&limit={}&toTs={}".format(
+                param['fsym'], param['tsym'], param['limit'], param['toTs']
             )
         else:
             raise ValueError('frequency', freq, 'not supported')
@@ -39,7 +39,7 @@ class CryptoCompareAPI():
     
     def getTopCap(self, param={'tsym':'USD', 'limit':100}):
         suburl = "/top/mktcapfull?limit={}&tsym={}".format(
-            param['limit'], param['tsym']
+            param['limit'], param['tsym'], param['toTs']
         )
         data = self.__safeRequest(self.url + suburl)
         name = [i['CoinInfo']['Name'] for i in data]
@@ -55,7 +55,7 @@ class CryptoCompareAPI():
 
 if __name__ == '__main__':
     api = CryptoCompareAPI()
-    param = {'fsym':'USDT', 'tsym':'USD', 'limit':168}
+    param = {'fsym':'USDT', 'tsym':'USD', 'limit':168, 'toTs':10000000000}
     df = api.getCandle('h', param)
     print(df)
 
