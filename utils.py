@@ -1,6 +1,22 @@
+import time
 import pandas as pd
 
 COIN_LIST = ['USDT', 'DAI', 'TUSD', 'GUSD', 'USDC', 'PAX', 'USDS']
+
+def unix2date(unix):
+    """
+        Convert unix epoch time 1562554800 to
+        datetime with format '2019-07-07 23:00:00'
+    """
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(unix))
+
+
+def date2unxi(date):
+    """
+        Convert datetime with format '2019-07-07 23:00:00' to 
+        unix epoch time 1562554800
+    """
+    return int(time.mktime(time.strptime(date, "%Y-%m-%d %H:%M:%S")))
 
 def myfilter(df, key_val):
     key = list(key_val.keys())[0]
