@@ -21,7 +21,7 @@ class CryptoCompareAPI():
         data = resp['Data']
         return data
     
-    def getCandle(self, fsym, tsym, freq, start_time=None, end_time=None, limit=None):        
+    def getCandle(self, fsym, tsym, freq, start_time=None, end_time=None, limit=None, e='CCCAGG'):        
         """
             fsym: ticker
             tsym: base
@@ -29,6 +29,7 @@ class CryptoCompareAPI():
             start_time: string datetime format
             end_time: string datetime format
             limit: number of candles
+            e: exchange (default:CCCAGG)
         """
         fsym = fsym.upper()
         tsym = tsym.upper()
@@ -43,12 +44,15 @@ class CryptoCompareAPI():
         else:
             raise ValueError('frequency', freq, 'not supported')
         base_url += f'&aggregate={agg}' # aggragate
+        base_url += f'&e={e}' # exchange
         if start_time != None and end_time != None and limit == None:
             start_unix = int(pd.to_datetime(start_time).timestamp())
             end_unix = int(pd.to_datetime(end_time).timestamp())
             base_url += f'&limit={2000}' # limit
             query_url = base_url + f'&toTs={end_unix}' # until
-            bottom_df = pd.DataFrame(self.__safeRequest(self.url + query_url)) 
+            bottom_df = pd.DataFrame(self.__safeRequest(self.url + query_url))
+            if len(bottom_df) == 0:
+                raise Exception(f'No Data Fetched with {self.url + query_url}')
             while True:
                 old_unix = bottom_df.iloc[0]['time']
                 if  old_unix <= start_unix:
@@ -95,9 +99,9 @@ class CryptoCompareAPI():
 
 if __name__ == '__main__':
     api = CryptoCompareAPI()
-    df = api.getCandle('BTC', 'USDT', '1m', start_time="2019-01-01", end_time="2019-07-15")
+    df = api.getCandle('BTC', 'USDT', '1m', start_time="2019-01-01", end_time="2019-07-15", e='Binance')
     # df = api.getCandle('BTC', 'USDT', '1m', end_time="2019-01-01", limit=1000)
     # df = api.getCandle('BTC', 'USDT', '1m', limit=1000)
-    print(df)
+    print(df.head())
 
     
