@@ -95,7 +95,9 @@ class CryptoCompareAPI():
 
 if __name__ == '__main__':
     api = CryptoCompareAPI()
-    df = api.getCandle('BTC', 'USDT', '1m', "2019-01-01", "2019-07-15")
+    df = api.getCandle('BTC', 'USDT', '1m', start_time="2019-01-01", end_time="2019-07-15")
+    # df = api.getCandle('BTC', 'USDT', '1m', end_time="2019-01-01", limit=1000)
+    # df = api.getCandle('BTC', 'USDT', '1m', limit=1000)
     print(df)
 
     
