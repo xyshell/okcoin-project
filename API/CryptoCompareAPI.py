@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import requests
+import re
 from datetime import datetime
 
 class CryptoCompareAPI():
@@ -20,50 +21,51 @@ class CryptoCompareAPI():
         data = resp['Data']
         return data
     
-    def getCandle(self, start_time, end_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), freq='d',
-                  param={'fsym':'BTC', 'tsym':'USD'}):        
-        try:
-            start_tstmp = pd.to_datetime(start_time)
-        except TypeError as error:
-            print(error)
-        try:
-            end_tstmp = pd.to_datetime(end_time)
-        except TypeError as error:
-            print(error)
-        
-        start_stmp = int(pd.to_datetime(start_time).timestamp())
-        end_stmp = int(pd.to_datetime(end_time).timestamp())
-        
+    def getCandle(self, fsym, tsym, freq, start_time, end_time):        
+        """
+            fsym: ticker
+            tsym: base
+            freq: '1m', '2h', '3d'
+            start_time: string datetime format
+            end_time: string datetime format
+            limit: number of candles
+        """
+        fsym = fsym.upper()
+        tsym = tsym.upper()
+        agg = re.findall("\d+", freq)[0]
+        freq = re.findall("[a-z]", freq)[0]
+        start_unix = int(pd.to_datetime(start_time).timestamp())
+        end_unix = int(pd.to_datetime(end_time).timestamp())
+
         if freq == 'd':
-            ind = 60*60*24
-            suburl = "/histoday?fsym={}&tsym={}".format(param['fsym'], param['tsym'])
+            base_url = "/histoday?fsym={}&tsym={}".format(fsym, tsym)
         elif freq == 'h':
-            ind = 60*60
-            suburl = "/histohour?fsym={}&tsym={}".format(param['fsym'], param['tsym'])
+            base_url = "/histohour?fsym={}&tsym={}".format(fsym, tsym)
         elif freq == 'm':
-            ind = 60
-            suburl = "/histominute?fsym={}&tsym={}".format(param['fsym'], param['tsym'])
+            base_url = "/histominute?fsym={}&tsym={}".format(fsym, tsym)
         else:
             raise ValueError('frequency', freq, 'not supported')
+
+        base_url += f'&aggregate={agg}' # aggragate
+        base_url += f'&limit={2000}' # limit
+        query_url = base_url + f'&toTs={end_unix}' # until
+        bottom_df = pd.DataFrame(self.__safeRequest(self.url + query_url)) 
+        while True:
+            old_time = bottom_df.iloc[0]['time']
+            if  old_time <= start_unix:
+                bottom_df = bottom_df[bottom_df['time'] >= start_unix]
+                break
+            else:
+                query_url = base_url + f'&toTs={old_time}' 
+                query_df = pd.DataFrame(self.__safeRequest(self.url + query_url))
+                if len(query_df) == 0:
+                    earlies_time = datetime.utcfromtimestamp(old_time).strftime('%Y-%m-%d %H:%M:%S')
+                    print(f"Request from {start_time}. But Available from {earlies_time}")
+                    break
+                else:
+                    bottom_df = query_df.append(bottom_df.iloc[1:], ignore_index=True)
         
-        record_num = int((end_stmp-start_stmp)/ind)
-        full_fetch_time = record_num//2000
-        record_left = record_num-2000*full_fetch_time
-        limit_list = [2000]*full_fetch_time + [record_left]*int(record_left>0)
-        count_stmp = end_stmp
-        df = pd.DataFrame()
-        
-        for limit in limit_list:
-            full_suburl = suburl + "&limit={}&toTs={}".format(limit, count_stmp)
-            data = self.__safeRequest(self.url + full_suburl)
-            df1 = pd.DataFrame(data)
-            df1 = df1.iloc[::-1]
-            df = df.append(df1, ignore_index=True)
-            count_stmp -= limit*ind
-            
-        df = df.drop_duplicates()
-        
-        return df
+        return bottom_df
     
     def getTopCap(self, param={'tsym':'USD', 'limit':100}):
         suburl = "/top/mktcapfull?limit={}&tsym={}".format(
@@ -83,8 +85,7 @@ class CryptoCompareAPI():
 
 if __name__ == '__main__':
     api = CryptoCompareAPI()
-    param = {'fsym':'USDT', 'tsym':'USD', 'limit':168}
-    df = api.getCandle('h', param)
+    df = api.getCandle('BTC', 'USDT', '1m', "2019-01-01", "2019-07-14")
     print(df)
 
     
