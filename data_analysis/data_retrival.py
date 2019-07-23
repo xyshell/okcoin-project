@@ -155,13 +155,12 @@ class data_retrieve():
         
 #test      
 if False: #__name__ == "__main__":
-    a = data_retrieve()
+    obj = data_retrieve()
+    data = obj.history_data('h',1559174400, {'fsym':'BTC','tsym':'USD','limit':200,'e':'Coinbase','toTs':1561852800})
+    df, title = obj.output(data)
+    
+    #sample process
     #.history_data(freq style, fromTime, parameter{fsym: crypt, tsym: fiat, limit:<2000, e: exchang, toTs: until time}
-    
-    data = a.history_data('h',1559174400, {'fsym':'BTC','tsym':'USD','limit':200,'e':'Coinbase','toTs':1561852800})
-    df, title = a.output(data)
-    
-    #min_time = a.time_convert(min(df['time']))
-    
+    #.output(data) to load in Sqlite
     
 

@@ -14,7 +14,7 @@ class data_storage():
         self.con = sqlite3.connect(db_name)
         self.cur = self.con.cursor()
         
-    def load_data(self, df, table_name='', drop_duplicate = False):
+    def load_data(self, df, table_name='', drop_duplicate = True):
         #load df into sqlite db
         
         if len(table_name)<1:
@@ -38,11 +38,18 @@ class data_storage():
             
     def dump_data(self, table_name):
         #dump table back to df
+        #del all zero slides
         
         if len(table_name)<1:
             raise Exception('unsupport dump table_name ! \n')
             
         df = pd.read_sql_query('''SELECT * FROM {}'''.format(table_name), self.con) #提取db
+        
+        temp = df['time']
+        del df['time'] 
+        df = df.ix[~(df==0).all(axis=1), :]  # del all 0 roll
+        df['time'] = temp
+
         return df
     
         
@@ -63,9 +70,11 @@ class data_storage():
 if False:#__name__ == '__main__':
     from data_retrival import data_retrieve
     
-    x = data_storage("crypto_base.sqlite")
-   
-    x.load_data(df, 'test_table2')
+    obj = data_storage("crypto_base.sqlite")
+    obj.load_data(df, 'test_table2')
+    obj.drop_duplicates('test_table')
     
-    x.drop_duplicates('test_table')
+    #sample process:
+    #.load_data(df, 'table_name', drop_duplicate = True)
+    #.dump_data('table_name')
    
