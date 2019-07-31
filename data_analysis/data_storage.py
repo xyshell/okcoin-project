@@ -75,6 +75,7 @@ if False:#__name__ == '__main__':
     obj.drop_duplicates('test_table')
     
     #sample process:
+    #create obj data_storage('.sqlite')
     #.load_data(df, 'table_name', drop_duplicate = True)
     #.dump_data('table_name')
    

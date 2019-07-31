@@ -28,8 +28,9 @@ class data_analyze():
     def adding_df(self, obj): #add new df to df_list 
         if type(obj) == pd.DataFrame:
             self.df_list.append(obj)
+            
         elif type(obj) == list:
-            self.df_list += obj
+            self.df_list = self.df_list + obj
         else:
             raise ValueError('unsupport adding obj!! \n')
     
@@ -60,8 +61,8 @@ class data_analyze():
             date_utc=date_est.astimezone(utc)
             return int(date_utc.timestamp())
         
-    def covert_to_test_df(self): #create&update sttribute test_df_list and transfer each df in df_list to analysiable df
-                                 #test_df_list contain df as east_time index, timestamp and returns
+    def covert_to_test_df(self): #create&update 'test_df_list' and transfer each df in df_list to analysiable df
+                                 #test_df_list contain df as US_eastern_time index, timestamp and returns
         new_list = []
         for df in self.df_list:
             returns = df['close'].pct_change()
@@ -125,18 +126,18 @@ class data_analyze():
         
         return {'acf':acf, 'pacf': pacf, 'adf': ADF}
     
-    def seasonality_decomp(self, test_df, freq = 'h', plot = False):
+    def seasonality_return_decomp(self, test_df, f = 0, plot = False):
+        if f == 0:
+            raise ValueError('\nError freqency input!! \n')
+            
+        obv = test_df['return'][1::]
         
         if test_df['timestamp'][1] - test_df['timestamp'][0] == 60:
             
             raise ValueError('\n Wrong using minute data! \n')
-        #since 'return[0]' is nan    
-        
-        elif freq == 'h':
-            decomposition = seasonal_decompose(test_df['return'][1::], freq=365*24)
-        elif freq == 'd':
-            decomposition = seasonal_decompose(test_df['return'][1::], freq=365)
             
+        #since 'return[0]' is nan     
+        decomposition = seasonal_decompose(obv, freq=f, model='additive')
         trend = decomposition.trend
         seasonal = decomposition.seasonal
         residual = decomposition.resid
@@ -144,16 +145,65 @@ class data_analyze():
         
         if plot:
             plt.figure(figsize=(15,10)) 
-            decomposition.plot() 
+            plt.subplot(411)
+            plt.plot(obv,label = 'obv', lw = 0.7)
+            plt.legend(loc='best')
+            plt.subplot(412)
+            plt.plot(trend,label = 'trend', lw = 0.7)
+            plt.legend(loc='best')
+            plt.subplot(413)
+            plt.plot(seasonal,label = 'seasonal', lw = 0.7)
+            plt.legend(loc='best')
+            plt.subplot(414)
+            plt.plot(residual,label = 'residual', lw = 0.7)
+            plt.legend(loc='best')
             plt.show()
             
-            
-            
+            print('stats =',ADF[0], 'Alpha =',ADF[4])
+            if ADF[0] < ADF[4]['1%']:
+                print('\nResidual is stable in 99% confid. interval')
             
         return {'trend':trend, 'seasonal':seasonal, 'residual': residual, 'adf':ADF}
         
         
+    def seasonality_price_decomp(self, test_df, f = 0, plot = False):
+        if f == 0:
+            raise ValueError('\nError freqency input!! \n')
             
+        obv = test_df['close']
+        
+        if test_df['timestamp'][1] - test_df['timestamp'][0] == 60:
+            
+            raise ValueError('\n Wrong using minute data! \n')
+            
+        #since 'return[0]' is nan     
+        decomposition = seasonal_decompose(obv, freq=f, model='additive')
+        trend = decomposition.trend
+        seasonal = decomposition.seasonal
+        residual = decomposition.resid
+        ADF = unitroot_adf(test_df['return'][1::])
+        
+        if plot:
+            plt.figure(figsize=(15,10)) 
+            plt.subplot(411)
+            plt.plot(obv,label = 'obv', lw = 0.7)
+            plt.legend(loc='best')
+            plt.subplot(412)
+            plt.plot(trend,label = 'trend', lw = 0.7)
+            plt.legend(loc='best')
+            plt.subplot(413)
+            plt.plot(seasonal,label = 'seasonal', lw = 0.7)
+            plt.legend(loc='best')
+            plt.subplot(414)
+            plt.plot(residual,label = 'residual', lw = 0.7)
+            plt.legend(loc='best')
+            plt.show()
+            
+            print('stats =',ADF[0], 'Alpha =',ADF[4])
+            if ADF[0] < ADF[4]['1%']:
+                print('\nResidual is stable in 99% confid. interval')
+            
+        return {'trend':trend, 'seasonal':seasonal, 'residual': residual, 'adf':ADF}
             
 
 
@@ -182,15 +232,3 @@ if False: #__name__ == '__main__':
     #plt.figure()
     #plt.plot(BTC_min.index, BTC_min_r)
     #plt.show()
- 
-#%%
-
-#plt.figure(figsize = (15,10))
-#plt.plot(test_df_gusd_h['timestamp'], test_df_gusd_h['close'])
-#plt.figure(figsize = (15,10))
-#plt.plot(test_df_gusd_h['timestamp'], test_df_gusd_h['return'])
-#plt.plot(test_df['timestamp'], test_df['return'].diff(1))
-#plt.plot(test_df['timestamp'], test_df['return'].diff(2))
-
-
-#plt.show()

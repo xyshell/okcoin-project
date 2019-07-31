@@ -15,13 +15,13 @@ ret = data_retrieve()
 stor = data_storage('crypto_base.sqlite')
 
 coins = ['LTC']#1483232400 2017/01/01, 1561694400 2019-06-28 00:00
-stables = ['DAI','USDT', 'GUSD', 'TUSD', 'USDC', 'PAX', 'USDS'] 
+stables = ['USDS']#['DAI','USDT', 'GUSD', 'TUSD', 'USDC', 'PAX', 'USDS'] 
 exchanges = ['Coinbase', 'Binance']
 
 for item in stables:
     print('Start retrieve '+item+' data. \n')
     #                   ('freq', start_time,                       params                  stop_time)
-    data = ret.history_data('m',1563336000, {'fsym':item,'tsym':'USD','limit':2000,'e':'' ,'toTs':0})
+    data = ret.history_data('h',1483232400, {'fsym':item,'tsym':'USD','limit':2000,'e':'' ,'toTs':0})
     df, table_name = ret.output(data)
     stor.load_data(df, table_name, True)
 
