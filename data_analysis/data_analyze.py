@@ -14,8 +14,7 @@ import matplotlib.pyplot as plt
 from statsmodels.tsa import stattools
 from statsmodels.stats.diagnostic import unitroot_adf
 from statsmodels.tsa.seasonal import seasonal_decompose
-
-
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 
 class data_analyze():
@@ -110,19 +109,27 @@ class data_analyze():
     
     def stationary_test(self, test_df, plot = False):
         
-        acf = stattools.acf(test_df['return'][1::], nlags=10)
-        pacf = stattools.pacf(test_df['return'][1::], nlags=10)
-        ADF = unitroot_adf(test_df['return'][1::])
+        test_obj = test_df['return'][1::]
+        
+        acf = stattools.acf(test_obj, nlags=10)
+        pacf = stattools.pacf(test_obj, nlags=10)
+        ADF = unitroot_adf(test_obj)
     
         if plot:
-            #plt.figure(figsize = (10,10))
-            plt.stem(acf)
-            plt.title('ACF')
+            f = plt.figure(facecolor='white')
+            ax1 = f.add_subplot(211)
+            plot_acf(test_obj, lags=10, ax=ax1)
+            ax2 = f.add_subplot(212)
+            plot_pacf(test_obj, lags=10, ax=ax2)
             plt.show()
             #plt.figure(figsize = (10,10))
-            plt.stem(pacf)
-            plt.title('PACF')
-            plt.show()
+            #plt.stem(acf)
+            #plt.title('ACF')
+            #plt.show()
+            #plt.figure(figsize = (10,10))
+            #plt.stem(pacf)
+            #plt.title('PACF')
+            #plt.show()
         
         return {'acf':acf, 'pacf': pacf, 'adf': ADF}
     

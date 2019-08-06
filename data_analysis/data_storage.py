@@ -65,6 +65,28 @@ class data_storage():
         self.con.commit()
         self.con.close()
     
+    def time_convert(self,time_in):
+        #convert timestamp to US/EST and viceversa
+        if type(time_in) != str:
+            time_in = int(time_in)
+            #timestampe to US/EST
+            date = datetime.datetime.utcfromtimestamp(time_in)
+            utc = pytz.timezone('UTC')
+            est = pytz.timezone('US/Eastern')
+            fmt = '%Y-%m-%d %H:%M' 
+            time_out = utc.localize(date,is_dst=None)
+            time_out = time_out.astimezone(est).strftime(fmt)
+            return time_out
+        
+        else:
+            #US/EST to timestamp, input 'yyyy/mm/dd'
+            date = datetime.datetime.strptime(time_in,"%Y/%m/%d")
+            est = pytz.timezone('US/Eastern')
+            utc=pytz.utc
+            
+            date_est=est.localize(date,is_dst=None)
+            date_utc=date_est.astimezone(utc)
+            return int(date_utc.timestamp())
     
     
 if False:#__name__ == '__main__':
